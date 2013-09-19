@@ -17,8 +17,7 @@
 #
 
 
-from gi.repository import Gtk, Gdk
-#import Gtk.gdk
+from gi.repository import Gtk
 
 import xdot
 
@@ -27,11 +26,11 @@ class MyDotWindow(xdot.DotWindow):
 
     def __init__(self):
         xdot.DotWindow.__init__(self)
-        self.widget_.connect('clicked', self.on_url_clicked)
+        self.dotwidget.connect('clicked', self.on_url_clicked)
 
     def on_url_clicked(self, widget, url, event):
         dialog = Gtk.MessageDialog(
-                parent = self,
+                parent = self, 
                 buttons = Gtk.ButtonsType.OK,
                 message_format="%s clicked" % url)
         dialog.connect('response', lambda dialog, response: dialog.destroy())
@@ -51,11 +50,9 @@ digraph G {
 def main():
     window = MyDotWindow()
     window.set_dotcode(dotcode)
-    window.connect('destroy', Gtk.main_quit)
+    window.connect('delete-event', Gtk.main_quit)
     Gtk.main()
 
 
 if __name__ == '__main__':
     main()
-
-quit()
