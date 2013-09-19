@@ -106,10 +106,12 @@ class TextShape(Shape):
         self.t = t
 
     def draw(self, cr, highlight=False):
+        return
 
         try:
             layout = self.layout
         except AttributeError:
+            #pprint.pprint(dir(cr))
             layout = cr.create_layout()
 
             # set font options
