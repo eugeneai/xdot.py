@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#
+# encoding: utf-8
 # Copyright 2008 Jose Fonseca
 #
 # This program is free software: you can redistribute it and/or modify it
@@ -43,7 +43,8 @@ digraph G {
   Привет [URL="http://en.wikipedia.org/wiki/Hello"]
   Женщина [URL="http://en.wikipedia.org/wiki/World"]
     Привет -> Женщина
-    Wo -> Wor
+    Hello -> World
+    Привет -> Hello
 }
 """
 
