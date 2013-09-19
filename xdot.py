@@ -134,7 +134,8 @@ class TextShape(Shape):
 
             # set font
             font = Pango.FontDescription()
-            font.set_family(self.pen.fontname)
+            # font.set_family(self.pen.fontname)
+            font.set_family("Inconsolata LGC")
             font.set_absolute_size(self.pen.fontsize*Pango.SCALE)
             layout.set_font_description(font)
 
@@ -180,6 +181,29 @@ class TextShape(Shape):
         cr.set_source_rgba(*self.select_pen(highlight).color)
         PangoCairo.show_layout(cr, layout)
         cr.restore()
+
+        """
+        cr.save()
+        cr.select_font_face ("Monospace",
+                             cairo.FONT_SLANT_NORMAL,
+                             cairo.FONT_WEIGHT_NORMAL)
+        cr.set_font_size(self.pen.fontsize)
+        #cr.set_font_size(self.pen.fontsize*Pango.SCALE)
+        #cr.set_source_rgba(*self.select_pen(highlight).color)
+        cr.set_source_rgba(0,1,0,0.4)
+        (x_bea, y_bea, w, h, x_adv, y_adv) = cr.text_extents(self.t)
+        if self.j == self.LEFT:
+            x = self.x
+        elif self.j == self.CENTER:
+            x = self.x - 0.5*w
+        elif self.j == self.RIGHT:
+            x = self.x - w
+        y=self.y
+        cr.move_to(x, y)
+        cr.show_text(self.t)
+        cr.stroke()
+        cr.restore()
+        """
 
         if 0: # DEBUG
             # show where dot thinks the text should appear
