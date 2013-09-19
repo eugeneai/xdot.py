@@ -40,9 +40,10 @@ class MyDotWindow(xdot.DotWindow):
 
 dotcode = """
 digraph G {
-  Hello [URL="http://en.wikipedia.org/wiki/Hello"]
-  World [URL="http://en.wikipedia.org/wiki/World"]
-    Hello -> World
+  Привет [URL="http://en.wikipedia.org/wiki/Hello"]
+  Женщина [URL="http://en.wikipedia.org/wiki/World"]
+    Привет -> Женщина
+    Wo -> Wor
 }
 """
 
