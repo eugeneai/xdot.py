@@ -106,8 +106,8 @@ class TextShape(Shape):
         self.t = t
 
     def draw(self, cr, highlight=False):
-        return
 
+        """
         try:
             layout = self.layout
         except AttributeError:
@@ -142,6 +142,7 @@ class TextShape(Shape):
         else:
             cr.update_layout(layout)
 
+
         descent = 2 # XXX get descender from font metrics
 
         width, height = layout.get_size()
@@ -167,6 +168,7 @@ class TextShape(Shape):
         else:
             assert 0
 
+
         y = self.y - height + descent
 
         cr.move_to(x, y)
@@ -176,19 +178,33 @@ class TextShape(Shape):
         cr.set_source_rgba(*self.select_pen(highlight).color)
         cr.show_layout(layout)
         cr.restore()
+        """
 
-        if 0: # DEBUG
-            # show where dot thinks the text should appear
+        cr.save()
+        cr.select_font_face ("Sans",
+                             cairo.FONT_SLANT_NORMAL,
+                             cairo.FONT_WEIGHT_NORMAL)
+        cr.set_font_size(self.pen.fontsize)
+        #cr.set_font_size(self.pen.fontsize*Pango.SCALE)
+        cr.set_source_rgba(*self.select_pen(highlight).color)
+        (x_bea, y_bea, w, h, x_adv, y_adv) = cr.text_extents(self.t)
+        if self.j == self.LEFT:
+            x = self.x
+        elif self.j == self.CENTER:
+            x = self.x - 0.5*w
+        elif self.j == self.RIGHT:
+            x = self.x - w
+        y=self.y
+        cr.move_to(x, y)
+        cr.show_text(self.t)
+        cr.stroke()
+
+        if 0:
             cr.set_source_rgba(1, 0, 0, .9)
-            if self.j == self.LEFT:
-                x = self.x
-            elif self.j == self.CENTER:
-                x = self.x - 0.5*self.w
-            elif self.j == self.RIGHT:
-                x = self.x - self.w
             cr.move_to(x, self.y)
             cr.line_to(x+self.w, self.y)
             cr.stroke()
+        cr.restore()
 
     def search_text(self, regexp):
         return regexp.search(self.t) is not None
