@@ -518,7 +518,7 @@ class XDotAttrParser:
         self.parser = parser
         self.buf = buf
         self.pos = 0
-        
+
         self.pen = Pen()
         self.shapes = []
 
@@ -534,7 +534,7 @@ class XDotAttrParser:
         return res
 
     def read_number(self):
-        return int(self.read_code())
+        return int(float(self.read_code()))
 
     def read_float(self):
         return float(self.read_code())
@@ -609,7 +609,7 @@ class XDotAttrParser:
             b = b*s
             a = 1.0
             return r, g, b, a
-                
+
         sys.stderr.write("unknown color '%s'\n" % c)
         return None
 
@@ -681,7 +681,7 @@ class XDotAttrParser:
                 break
 
         return self.shapes
-    
+
     def transform(self, x, y):
         return self.parser.transform(x, y)
 
@@ -748,7 +748,7 @@ class ParseError(Exception):
 
     def __str__(self):
         return ':'.join([str(part) for part in (self.filename, self.line, self.col, self.msg) if part != None])
-        
+
 
 class Scanner:
     """Stateless scanner."""
@@ -887,9 +887,9 @@ class Parser:
     def match(self, type):
         if self.lookahead.type != type:
             raise ParseError(
-                msg = 'unexpected token %r' % self.lookahead.text, 
-                filename = self.lexer.filename, 
-                line = self.lookahead.line, 
+                msg = 'unexpected token %r' % self.lookahead.text,
+                filename = self.lexer.filename,
+                line = self.lookahead.line,
                 col = self.lookahead.col)
 
     def skip(self, type):
@@ -992,7 +992,7 @@ class DotLexer(Lexer):
             text = text.replace('\\\r\n', '')
             text = text.replace('\\\r', '')
             text = text.replace('\\\n', '')
-            
+
             # quotes
             text = text.replace('\\"', '"')
 
@@ -1134,7 +1134,7 @@ class XDotParser(DotParser):
     def __init__(self, xdotcode):
         lexer = DotLexer(buf = xdotcode)
         DotParser.__init__(self, lexer)
-        
+
         self.nodes = []
         self.edges = []
         self.shapes = []
@@ -1163,7 +1163,7 @@ class XDotParser(DotParser):
             self.height = max(ymax - ymin, 1)
 
             self.top_graph = False
-        
+
         for attr in ("_draw_", "_ldraw_", "_hdraw_", "_tdraw_", "_hldraw_", "_tldraw_"):
             if attr in attrs:
                 parser = XDotAttrParser(self, attrs[attr])
@@ -1194,7 +1194,7 @@ class XDotParser(DotParser):
             pos = attrs['pos']
         except KeyError:
             return
-        
+
         points = self.parse_edge_pos(pos)
         shapes = []
         for attr in ("_draw_", "_ldraw_", "_hdraw_", "_tdraw_", "_hldraw_", "_tldraw_"):
@@ -1466,9 +1466,9 @@ class DotWidget(Gtk.DrawingArea):
         self.add_events(Gdk.EventMask.BUTTON_PRESS_MASK | Gdk.EventMask.BUTTON_RELEASE_MASK)
         self.connect("button-press-event", self.on_area_button_press)
         self.connect("button-release-event", self.on_area_button_release)
-        self.add_events(Gdk.EventMask.POINTER_MOTION_MASK | 
-                        Gdk.EventMask.POINTER_MOTION_HINT_MASK | 
-                        Gdk.EventMask.BUTTON_RELEASE_MASK | 
+        self.add_events(Gdk.EventMask.POINTER_MOTION_MASK |
+                        Gdk.EventMask.POINTER_MOTION_HINT_MASK |
+                        Gdk.EventMask.BUTTON_RELEASE_MASK |
                         Gdk.EventMask.SCROLL_MASK)
         self.connect("motion-notify-event", self.on_area_motion_notify)
         self.connect("scroll-event", self.on_area_scroll_event)
@@ -1952,21 +1952,21 @@ class DotWindow(Gtk.Window):
 
     def textentry_changed(self, widget, entry):
         entry_text = entry.get_text()
-        dot_widget = self.dotwidget        
+        dot_widget = self.dotwidget
         if not entry_text:
             dot_widget.set_highlight(None)
             return
-        
+
         found_items = self.find_text(entry_text)
         dot_widget.set_highlight(found_items)
 
     def textentry_activate(self, widget, entry):
         entry_text = entry.get_text()
-        dot_widget = self.dotwidget        
+        dot_widget = self.dotwidget
         if not entry_text:
             dot_widget.set_highlight(None)
             return;
-        
+
         found_items = self.find_text(entry_text)
         dot_widget.set_highlight(found_items)
         if(len(found_items) == 1):
@@ -1984,7 +1984,7 @@ class DotWindow(Gtk.Window):
         if self.dotwidget.set_xdotcode(xdotcode):
             self.update_title(filename)
             self.dotwidget.zoom_to_fit()
-        
+
     def update_title(self, filename=None):
         if filename is None:
             self.set_title(self.base_title)
@@ -2089,24 +2089,24 @@ Shortcuts:
 
 # Apache-Style Software License for ColorBrewer software and ColorBrewer Color
 # Schemes, Version 1.1
-# 
+#
 # Copyright (c) 2002 Cynthia Brewer, Mark Harrower, and The Pennsylvania State
 # University. All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-# 
+#
 #    1. Redistributions as source code must retain the above copyright notice,
-#    this list of conditions and the following disclaimer.  
+#    this list of conditions and the following disclaimer.
 #
 #    2. The end-user documentation included with the redistribution, if any,
 #    must include the following acknowledgment:
-# 
+#
 #       This product includes color specifications and designs developed by
 #       Cynthia Brewer (http://colorbrewer.org/).
-# 
+#
 #    Alternately, this acknowledgment may appear in the software itself, if and
-#    wherever such third-party acknowledgments normally appear.  
+#    wherever such third-party acknowledgments normally appear.
 #
 #    3. The name "ColorBrewer" must not be used to endorse or promote products
 #    derived from this software without prior written permission. For written
@@ -2114,8 +2114,8 @@ Shortcuts:
 #
 #    4. Products derived from this software may not be called "ColorBrewer",
 #    nor may "ColorBrewer" appear in their name, without prior written
-#    permission of Cynthia Brewer. 
-# 
+#    permission of Cynthia Brewer.
+#
 # THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED WARRANTIES,
 # INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
 # FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL CYNTHIA
@@ -2125,7 +2125,7 @@ Shortcuts:
 # LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
 # ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 brewer_colors = {
     'accent3': [(127, 201, 127), (190, 174, 212), (253, 192, 134)],
     'accent4': [(127, 201, 127), (190, 174, 212), (253, 192, 134), (255, 255, 153)],
