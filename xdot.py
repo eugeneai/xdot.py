@@ -36,7 +36,7 @@ from gi.repository import Gtk, Gdk
 import cairo
 from gi.repository import Pango
 #import pangocairo
-
+import pprint
 
 # See http://www.graphviz.org/pub/scm/graphviz-cairo/plugin/cairo/gvrender_cairo.c
 
@@ -1332,9 +1332,9 @@ class DragAction(object):
 
     def on_motion_notify(self, event):
         if event.is_hint:
-            x, y, state = event.window.get_pointer()
+            _, x, y, state = event.window.get_pointer()
         else:
-            x, y, state = event.x, event.y, event.get_state()
+            _, x, y, state = event.x, event.y, event.get_state()
         deltax = self.prevmousex - x
         deltay = self.prevmousey - y
         self.drag(deltax, deltay)
@@ -1366,7 +1366,7 @@ class NullAction(DragAction):
 
     def on_motion_notify(self, event):
         if event.is_hint:
-            print event.window.get_pointer()
+            #print event.window.get_pointer()
             _, x, y, state = event.window.get_pointer()
         else:
             _, x, y, state = event.x, event.y, event.get_state()
@@ -1375,18 +1375,18 @@ class NullAction(DragAction):
         if item is None:
             item = dot_widget.get_jump(x, y)
         if item is not None:
-            dot_widget.window.set_cursor(Gdk.Cursor.new(Gdk.HAND2))
+            dot_widget.get_window().set_cursor(Gdk.Cursor.new(Gdk.CursorType.HAND2))
             dot_widget.set_highlight(item.highlight)
         else:
-            print "DW:", dot_widget
-            dot_widget.window.set_cursor(Gdk.Cursor.new(Gdk.CursorType.ARROW))
+            #print "DW:", dot_widget
+            dot_widget.get_window().set_cursor(Gdk.Cursor.new(Gdk.CursorType.ARROW))
             dot_widget.set_highlight(None)
 
 
 class PanAction(DragAction):
 
     def start(self):
-        self.dot_widget.window.set_cursor(Gdk.Cursor.new(Gdk.FLEUR))
+        self.dot_widget.get_window().set_cursor(Gdk.Cursor.new(Gdk.CursorType.FLEUR))
 
     def drag(self, deltax, deltay):
         self.dot_widget.x += deltax / self.dot_widget.zoom_ratio
@@ -1394,7 +1394,7 @@ class PanAction(DragAction):
         self.dot_widget.queue_draw()
 
     def stop(self):
-        self.dot_widget.window.set_cursor(Gdk.Cursor.new(Gdk.CursorType.ARROW))
+        self.dot_widget.get_window().set_cursor(Gdk.Cursor.new(Gdk.CursorType.ARROW))
 
     abort = stop
 
@@ -1445,8 +1445,8 @@ class DotWidget(Gtk.DrawingArea):
     """PyGTK widget that draws dot graphs."""
 
     __gsignals__ = {
-        #'expose-event': 'override',
-        'clicked' : (GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_STRING, Gdk.Event))
+        'draw': 'override',
+        'clicked' : (GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_STRING, GObject.TYPE_PYOBJECT))
     }
 
     filter = 'dot'
@@ -1553,13 +1553,18 @@ class DotWidget(Gtk.DrawingArea):
                 self.reload()
         return True
 
-    def do_expose_event(self, event):
-        cr = self.window.cairo_create()
-
+    #def do_expose_event(self, event):
+    #    cr = self.get_window().cairo_create()
+    def do_draw(self, cr):
+        cr = self.get_window().cairo_create()
         # set a clip region for the expose event
+        alloc=self.get_allocation()
         cr.rectangle(
-            event.area.x, event.area.y,
-            event.area.width, event.area.height
+            0,0,
+            alloc.width,
+            alloc.height
+#            event.area.x, event.area.y,
+#            event.area.width, event.area.height
         )
         cr.clip()
 
@@ -1718,7 +1723,7 @@ class DotWidget(Gtk.DrawingArea):
         print_op.connect("begin_print", self.begin_print)
         print_op.connect("draw_page", self.draw_page)
 
-        res = print_op.run(Gtk.PRINT_OPERATION_ACTION_PRINT_DIALOG, self.parent.parent)
+        res = print_op.run(Gtk.PrintOperationActionType.PRINT_DIALOG, self.parent.parent)
 
         if res == Gtk.PRINT_OPERATION_RESULT_APPLY:
             print_settings = print_op.get_print_settings()
@@ -1760,7 +1765,7 @@ class DotWidget(Gtk.DrawingArea):
         return False
 
     def is_click(self, event, click_fuzz=4, click_timeout=1.0):
-        assert event.type == Gdk.BUTTON_RELEASE
+        #assert event.type == Gdk.ButtonsType.RELEASE
         if self.presstime is None:
             # got a button release without seeing the press?
             return False
