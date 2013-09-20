@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 #
 # Copyright 2008 Jose Fonseca
@@ -1875,8 +1876,7 @@ class FindMenuToolAction(Gtk.Action):
     def do_create_tool_item(self):
         return Gtk.ToolItem()
 
-
-class DotWindow(Gtk.Window):
+class DotWindowSetup(object):
 
     ui = '''
     <ui>
@@ -1895,24 +1895,29 @@ class DotWindow(Gtk.Window):
     </ui>
     '''
 
-    base_title = 'Dot Viewer'
+    def __init__(self, window, widget=None):
+        self.window=window
+        self.widget=widget
 
-    def __init__(self, widget=None):
-        Gtk.Window.__init__(self)
+    def __call__(self, receiver=None):
+
+        if receiver == None:
+            receiver = self
 
         self.graph = Graph()
 
-        window = self
+        window = self.window
 
-        window.set_title(self.base_title)
+        if (hasattr(window, "base_title")):
+            window.set_title(window.base_title)
         window.set_default_size(512, 512)
         vbox = Gtk.VBox()
         window.add(vbox)
 
-        self.dotwidget = widget or DotWidget()
+        window.dotwidget = self.widget or DotWidget()
 
         # Create a UIManager instance
-        uimanager = self.uimanager = Gtk.UIManager()
+        uimanager = window.uimanager = Gtk.UIManager()
 
         # Add the accelerator group to the toplevel window
         accelgroup = uimanager.get_accel_group()
@@ -1920,17 +1925,17 @@ class DotWindow(Gtk.Window):
 
         # Create an ActionGroup
         actiongroup = Gtk.ActionGroup('Actions')
-        self.actiongroup = actiongroup
+        window.actiongroup = actiongroup
 
         # Create actions
         actiongroup.add_actions((
-            ('Open', Gtk.STOCK_OPEN, None, None, None, self.on_open),
-            ('Reload', Gtk.STOCK_REFRESH, None, None, None, self.on_reload),
-            ('Print', Gtk.STOCK_PRINT, None, None, "Prints the currently visible part of the graph", self.dotwidget.on_print),
-            ('ZoomIn', Gtk.STOCK_ZOOM_IN, None, None, None, self.dotwidget.on_zoom_in),
-            ('ZoomOut', Gtk.STOCK_ZOOM_OUT, None, None, None, self.dotwidget.on_zoom_out),
-            ('ZoomFit', Gtk.STOCK_ZOOM_FIT, None, None, None, self.dotwidget.on_zoom_fit),
-            ('Zoom100', Gtk.STOCK_ZOOM_100, None, None, None, self.dotwidget.on_zoom_100),
+            ('Open', Gtk.STOCK_OPEN, None, None, None, receiver.on_open),
+            ('Reload', Gtk.STOCK_REFRESH, None, None, None, receiver.on_reload),
+            ('Print', Gtk.STOCK_PRINT, None, None, "Prints the currently visible part of the graph", window.dotwidget.on_print),
+            ('ZoomIn', Gtk.STOCK_ZOOM_IN, None, None, None, window.dotwidget.on_zoom_in),
+            ('ZoomOut', Gtk.STOCK_ZOOM_OUT, None, None, None, window.dotwidget.on_zoom_out),
+            ('ZoomFit', Gtk.STOCK_ZOOM_FIT, None, None, None, window.dotwidget.on_zoom_fit),
+            ('Zoom100', Gtk.STOCK_ZOOM_100, None, None, None, window.dotwidget.on_zoom_100),
         ))
 
         find_action = FindMenuToolAction("Find", None,
@@ -1947,27 +1952,25 @@ class DotWindow(Gtk.Window):
         toolbar = uimanager.get_widget('/ToolBar')
         vbox.pack_start(toolbar, False, False, 0)
 
-        vbox.pack_start(self.dotwidget, True, True, 0)
+        vbox.pack_start(window.dotwidget, True, True, 0)
 
-        self.last_open_dir = "."
+        window.last_open_dir = "."
 
-        self.set_focus(self.dotwidget)
+        window.set_focus(window.dotwidget)
 
         # Add Find text search
         find_toolitem = uimanager.get_widget('/ToolBar/Find')
-        self.textentry = Gtk.Entry(max_length=20)
-        self.textentry.set_icon_from_stock(0, Gtk.STOCK_FIND)
-        find_toolitem.add(self.textentry)
+        window.textentry = Gtk.Entry(max_length=20)
+        window.textentry.set_icon_from_stock(0, Gtk.STOCK_FIND)
+        find_toolitem.add(window.textentry)
 
-        self.textentry.set_activates_default(True)
-        self.textentry.connect ("activate", self.textentry_activate, self.textentry);
-        self.textentry.connect ("changed", self.textentry_changed, self.textentry);
-
-        self.show_all()
+        window.textentry.set_activates_default(True)
+        window.textentry.connect ("activate", receiver.textentry_activate, window.textentry);
+        window.textentry.connect ("changed", receiver.textentry_changed, window.textentry);
 
     def find_text(self, entry_text):
         found_items = []
-        dot_widget = self.dotwidget
+        dot_widget = self.window.dotwidget
         regexp = re.compile(entry_text)
         for node in dot_widget.graph.nodes:
             if node.search_text(regexp):
@@ -1976,7 +1979,7 @@ class DotWindow(Gtk.Window):
 
     def textentry_changed(self, widget, entry):
         entry_text = entry.get_text()
-        dot_widget = self.dotwidget
+        dot_widget = self.window.dotwidget
         if not entry_text:
             dot_widget.set_highlight(None)
             return
@@ -1986,7 +1989,7 @@ class DotWindow(Gtk.Window):
 
     def textentry_activate(self, widget, entry):
         entry_text = entry.get_text()
-        dot_widget = self.dotwidget
+        dot_widget = self.window.dotwidget
         if not entry_text:
             dot_widget.set_highlight(None)
             return;
@@ -1995,6 +1998,59 @@ class DotWindow(Gtk.Window):
         dot_widget.set_highlight(found_items)
         if(len(found_items) == 1):
             dot_widget.animate_to(found_items[0].x, found_items[0].y)
+
+    def open_file(self, filename):
+        try:
+            fp = file(filename, 'rt')
+            self.window.set_dotcode(fp.read(), filename)
+            fp.close()
+        except IOError as ex:
+            dlg = Gtk.MessageDialog(type=Gtk.MessageType.ERROR,
+                                    message_format=str(ex),
+                                    buttons=Gtk.ButtonsType.OK)
+            dlg.set_title(self.base_title)
+            dlg.run()
+            dlg.destroy()
+
+    def on_open(self, action):
+        chooser = Gtk.FileChooserDialog(title="Open dot File",
+                                        action=Gtk.FileChooserAction.OPEN,
+                                        buttons=(Gtk.STOCK_CANCEL,
+                                                 Gtk.ResponseType.CANCEL,
+                                                 Gtk.STOCK_OPEN,
+                                                 Gtk.ResponseType.OK))
+        chooser.set_default_response(Gtk.ResponseType.OK)
+        chooser.set_current_folder(self.window.last_open_dir)
+        filter = Gtk.FileFilter()
+        filter.set_name("Graphviz dot files")
+        filter.add_pattern("*.dot")
+        chooser.add_filter(filter)
+        filter = Gtk.FileFilter()
+        filter.set_name("All files")
+        filter.add_pattern("*")
+        chooser.add_filter(filter)
+        if chooser.run() == Gtk.ResponseType.OK:
+            filename = chooser.get_filename()
+            self.window.last_open_dir = chooser.get_current_folder()
+            chooser.destroy()
+            self.open_file(filename)
+        else:
+            chooser.destroy()
+
+    def on_reload(self, action):
+        self.window.dotwidget.reload()
+
+
+class DotWindow(Gtk.Window):
+
+    base_title = 'Dot Viewer'
+
+    def __init__(self, widget=None):
+        Gtk.Window.__init__(self)
+
+        setup=DotWindowSetup(self, widget)
+        setup()
+        self.show_all()
 
     def set_filter(self, filter):
         self.dotwidget.set_filter(filter)
@@ -2014,47 +2070,6 @@ class DotWindow(Gtk.Window):
             self.set_title(self.base_title)
         else:
             self.set_title(os.path.basename(filename) + ' - ' + self.base_title)
-
-    def open_file(self, filename):
-        try:
-            fp = file(filename, 'rt')
-            self.set_dotcode(fp.read(), filename)
-            fp.close()
-        except IOError as ex:
-            dlg = Gtk.MessageDialog(type=Gtk.MessageType.ERROR,
-                                    message_format=str(ex),
-                                    buttons=Gtk.ButtonsType.OK)
-            dlg.set_title(self.base_title)
-            dlg.run()
-            dlg.destroy()
-
-    def on_open(self, action):
-        chooser = Gtk.FileChooserDialog(title="Open dot File",
-                                        action=Gtk.FileChooserAction.OPEN,
-                                        buttons=(Gtk.STOCK_CANCEL,
-                                                 Gtk.ResponseType.CANCEL,
-                                                 Gtk.STOCK_OPEN,
-                                                 Gtk.ResponseType.OK))
-        chooser.set_default_response(Gtk.ResponseType.OK)
-        chooser.set_current_folder(self.last_open_dir)
-        filter = Gtk.FileFilter()
-        filter.set_name("Graphviz dot files")
-        filter.add_pattern("*.dot")
-        chooser.add_filter(filter)
-        filter = Gtk.FileFilter()
-        filter.set_name("All files")
-        filter.add_pattern("*")
-        chooser.add_filter(filter)
-        if chooser.run() == Gtk.ResponseType.OK:
-            filename = chooser.get_filename()
-            self.last_open_dir = chooser.get_current_folder()
-            chooser.destroy()
-            self.open_file(filename)
-        else:
-            chooser.destroy()
-
-    def on_reload(self, action):
-        self.dotwidget.reload()
 
 
 class OptionParser(optparse.OptionParser):
